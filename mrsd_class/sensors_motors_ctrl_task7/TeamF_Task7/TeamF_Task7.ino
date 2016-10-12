@@ -25,7 +25,7 @@ void writeStatus() {
   String statusMsg = "bom,";
 
   // Servo status
-  statusMsg = statusMsg + servoState.svo_on + "," + servoState.svo_pos + ",na,na,na,";
+  statusMsg = statusMsg + servoState.on + "," + servoState.svo_pos + ",na,na,na,";
 
   // Stepper status
   statusMsg = statusMsg + stepperStatus.on_off + "," + stepperStatus.angle + ",na,na,na,";
@@ -34,7 +34,7 @@ void writeStatus() {
   statusMsg = statusMsg + "0,0,na,na,na,";
 
   // UltrasoundSensor status
-  statusMsg = statusMsg + ultraSoundState.us_on + "," + ultraSoundState.dist + ",na,na,na,";
+  statusMsg = statusMsg + ultraSoundState.on + "," + ultraSoundState.dist + ",na,na,na,";
 
   // InfraredSensor status
   statusMsg = statusMsg + irSensorStatus.on_off + "," + irSensorStatus.Distance + ",na,na,na,";
@@ -43,8 +43,10 @@ void writeStatus() {
   statusMsg = statusMsg + "0,0,na,na,na," ;
 
   // Print msg
-  int mode = (sensorMode == true ? 1 : 0);
-  statusMsg += "," + mode;
+  if (sensorMode == true)
+    statusMsg += "1";
+  else
+    statusMsg += "0"; 
   statusMsg += ",eom";
   Serial.println(statusMsg);
 }

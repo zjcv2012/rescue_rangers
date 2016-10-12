@@ -8,12 +8,12 @@ struct UltraSoundState {
   int MIN_DIST;
   int pin;
   int dist;
-  bool us_on;
+  bool on;
 };
 
 struct ServoState {
   int svo_pos;
-  bool svo_on;
+  bool on;
 }; 
 
 void setupServo(int usPin);

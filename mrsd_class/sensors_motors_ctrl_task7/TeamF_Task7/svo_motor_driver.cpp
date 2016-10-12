@@ -15,12 +15,14 @@ void setupServo(int usPin) {
     delay(15);                       
   }
   servoState.svo_pos = 0;  
+  servoState.on = true;  
   
   // Setup Ultrasound
   ultraSoundState.MAX_DIST = 256;  
   ultraSoundState.MIN_DIST = 6;
   ultraSoundState.pin = usPin;
   ultraSoundState.dist = 500;
+  ultraSoundState.on = true;
 }
 
 void updateDistance() {
@@ -29,15 +31,15 @@ void updateDistance() {
 }
 
 void updateServoState(bool on) {
-  servoState.svo_on = on;
+  servoState.on = on;
 }
 
 void updateUSSensorState(bool on) {
-  ultraSoundState.us_on = on;
+  ultraSoundState.on = on;
 }
 
 void driveServo(int angle){
-  if (servoState.svo_on) {
+  if (servoState.on) {
     int currAngle = svo.read();
     if (currAngle > angle) {
       for (int svo_pos = currAngle; svo_pos <= angle; svo_pos += 1) { 
@@ -54,7 +56,7 @@ void driveServo(int angle){
 } 
 
 void driveServo() {
-  if ((servoState.svo_on) && (ultraSoundState.us_on)){
+  if ((servoState.on) && (ultraSoundState.on)){
     updateDistance();
     if (ultraSoundState.dist < 20) {
       int currAngle = svo.read();
