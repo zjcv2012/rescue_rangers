@@ -10,7 +10,7 @@ void setup() {
   sensorMode = true;
 
   // Setup motors
-  setupServo(A1);
+  setupServo(A3);
   setupStepper();
   DC_Initial();
 
@@ -19,29 +19,33 @@ void setup() {
   Serial.println("Ready");
 }
 
+// Servo, Stepper, DCMotor, US, IR, F
+// State, Reading, Direction (0 F, 1 R), RPM (only for DC), 
 void writeStatus() {
   String statusMsg = "bom,";
 
   // Servo status
-  statusMsg = statusMsg + "m_ser," + servoState.svo_on + "," + servoState.svo_pos;
+  statusMsg = statusMsg + servoState.svo_on + "," + servoState.svo_pos + ",na,na,na,";
 
   // Stepper status
-  statusMsg = statusMsg + ",m_stp," + stepperStatus.angle;
+  statusMsg = statusMsg + stepperStatus.on_off + "," + stepperStatus.angle + ",na,na,na,";
 
   // DC status
-  //statusMsg = statusMsg + ",m_dcm," + stepperStatus.angle;
+  statusMsg = statusMsg + "0,0,na,na,na,";
 
   // UltrasoundSensor status
-  statusMsg = statusMsg + ",s_usr," + ultraSoundState.us_on + "," + ultraSoundState.dist;
+  statusMsg = statusMsg + ultraSoundState.us_on + "," + ultraSoundState.dist + ",na,na,na,";
 
   // InfraredSensor status
-  statusMsg = statusMsg + ",s_isr," + irSensorStatus.on_off + "," + irSensorStatus.Distance;
+  statusMsg = statusMsg + irSensorStatus.on_off + "," + irSensorStatus.Distance + ",na,na,na,";
 
   // ForceSensor status
-  statusMsg = statusMsg + ",s_isr," + irSensorStatus.on_off + "," + irSensorStatus.Distance;
+  statusMsg = statusMsg + "0,0,na,na,na," ;
 
   // Print msg
-  statusMsg += ",eom"
+  int mode = (sensorMode == true ? 1 : 0);
+  statusMsg += "," + mode;
+  statusMsg += ",eom";
   Serial.println(statusMsg);
 }
 
@@ -117,18 +121,19 @@ void loop() {
       processCommand(commands, numCommands);
 
   // Check individual motors
+  
   if (sensorMode) {
     driveServo();
   }
-  //writeStatus();
-  delay(1000);  
+  writeStatus();
+  delay(5000);  
 }
 
 /* 
  *  TEST CASES
  *  
- *  1. Send gui-based. 
- *  
+ *  bom,sensor-based,eom  - Serial input based functinality disabled
+ *  bom,gui-based,eom  - Sensor based functionality disabled
  *  
  * 
  * bom,sensor-based,eom

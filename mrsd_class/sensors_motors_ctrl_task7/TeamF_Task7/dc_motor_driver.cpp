@@ -1,6 +1,7 @@
 #include <Arduino.h>
 #include "TimerOne.h"
 #include "PID_v1.h"
+#include "dc_motor_driver.h"
 
 // Pin Definition
 #define encoder0PinA  2
