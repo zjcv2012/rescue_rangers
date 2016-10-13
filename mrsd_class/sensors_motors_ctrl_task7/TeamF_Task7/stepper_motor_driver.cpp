@@ -3,16 +3,13 @@
 
 #include "stepper_motor_driver.h"
 
-#define ir A0
+#define ir A1
 #define model 20150
 
 StepperMotorStatus stepperStatus;
 IRSensorStatus irSensorStatus;
 
 boolean done=false;
-int dis_sum = 0;
-int count = 0;
-int num = 0;
 int dis_1 = 20;
 
 SharpIR sharp(ir, 25, 93, model);
@@ -30,10 +27,8 @@ const int stepsPerRevolution = 100;  // change this to fit the number of steps p
 
 
 // initialize the stepper library on pins 8 through 9:
-Stepper myStepper(stepsPerRevolution, 8, 9, 10,11); //pin 9 step;pin 10 direction
+Stepper myStepper(stepsPerRevolution, 6, 9, 10,11); //pin 9 step;pin 10 direction
 int sensorpin = 0;                 // analog pin used to connect the sharp sensor
-int motorSpeed = 200;               // variable to store the values from sensor(initially zero)
-float angle_2 = 0;
 float angle_sum=0;
 int stepCount = 0;  // number of steps the motor has taken
 /////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -42,69 +37,76 @@ void setupStepper()
 {
   // put your setup code here, to run once:
   pinMode (ir, INPUT);
+  
+  stepperStatus.on_off = 1;
+  stepperStatus.spd = 200;
+  stepperStatus.angle = 0;
+  
+  irSensorStatus.on_off = 1; 
+}
+
+void updateStepperState(int angle, int motorspd, bool on_off) 
+{
+  stepperStatus.on_off = on_off;
+  stepperStatus.angle = angle;
+  stepperStatus.spd = motorspd;
+}
+
+void updateIRSensorState(bool on_off)
+{
+  irSensorStatus.on_off = on_off;
 }
 
 
-void driveStepper(int angle_2, bool on_off) 
+void driveStepper() 
 {
-  stepperStatus.on_off = on_off;
   if (stepperStatus.on_off)
   {
-    int stepNeed = int(angle_2*16/1.8);
-    myStepper.setSpeed(motorSpeed);
+    int angle = stepperStatus.angle;
+    int stepNeed = int(angle*4/1.8);
+    myStepper.setSpeed(stepperStatus.spd);
     myStepper.step(stepNeed);
-    angle_sum = angle_sum+angle_2;
+    angle_sum = angle_sum+angle;
     stepperStatus.angle = angle_sum;
     stepperStatus.on_off = 1;
   } 
-  else 
-  {
-    // swtich off 
-    stepperStatus.on_off = 0;
-  }
 }
 
-void IRSensorAndStepper(bool on_off_sensor, int Distance) 
+void IRSensorAndStepper() 
 {
-  irSensorStatus.on_off = on_off_sensor;
-  if (irSensorStatus.on_off)
-  {
-    delay(20);    // it gives you time to open the serial monitor after you upload the sketch
-    if(count%20!=0||count==0)
-    { 
-      int dis_2=sharp.distance();  // this returns the distance to the object you're measuring
-      count++;
-	    if (abs(dis_1-dis_2)<0.05*dis_1)
-      {
-        num++;
-        dis_sum = dis_sum+dis_2;
-      }
-     
-      dis_1 = dis_2;
-    }
-    else
-    {
-	    int meanDistance=dis_sum/num;
-	    irSensorStatus.Distance = meanDistance;
-	    int motorangle =  map(meanDistance, 20, 80, 20, 360);
-      if (20 < meanDistance && meanDistance < 81)
-      {
-        driveStepper(motorangle, 1) ;
-      }
-      else
-      {
-        driveStepper(0, 1) ;
-      }
-	    count=0;
-	    num=0;
-	    dis_sum=0;
-    }  
+    if (!irSensorStatus.on_off)
+      return;
 
-    irSensorStatus.on_off = 1;
-  } 
-  else 
-  {
-    // swtich off 
-    irSensorStatus.on_off= 0;
-  } 
+    // it gives you time to open the serial monitor after you upload the sketch
+    int num = 0;
+    int count = 0;
+    int dis_sum = 0;
+    
+    while (count < 10 )
+    { 
+        int dis_2 = sharp.distance();  // this returns the distance to the object you're measuring
+        count++;
+        
+        if(abs(dis_1-dis_2)<0.05*dis_1)
+        {
+            num++;
+            dis_sum = dis_sum+dis_2;
+        }
+          
+        dis_1 = dis_2;
+        delay(1);
+     }
+
+     irSensorStatus.Distance = dis_sum/num;
+     if (20 < irSensorStatus.Distance && irSensorStatus.Distance<81)
+     {
+       stepperStatus.spd =  map(irSensorStatus.Distance, 20, 80, 20, 200);
+       stepperStatus.angle = 100;
+       driveStepper() ;
+     }
+     else
+     {
+       stepperStatus.spd = 0;
+       driveStepper();
+     }
 }

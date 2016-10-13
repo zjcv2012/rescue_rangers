@@ -10,7 +10,7 @@ void setup() {
   sensorMode = true;
 
   // Setup motors
-  setupServo(A3);
+  setupServo();
   setupStepper();
   DC_Initial();
 
@@ -25,22 +25,24 @@ void writeStatus() {
   String statusMsg = "bom,";
 
   // Servo status
-  statusMsg = statusMsg + servoState.on + "," + servoState.svo_pos + ",na,na,na,";
+  statusMsg = statusMsg + servoState.on + "," + servoState.svo_pos + ",na,na,";
 
   // Stepper status
-  statusMsg = statusMsg + stepperStatus.on_off + "," + stepperStatus.angle + ",na,na,na,";
+  statusMsg = statusMsg + stepperStatus.on_off + "," + stepperStatus.angle + ",na,na,";
 
   // DC status
-  statusMsg = statusMsg + "0,0,na,na,na,";
+  DC_Motor_Status dc_status;
+  get_Motor_Status(dc_status);
+  statusMsg = statusMsg + dc_status.onoff + "," + dc_status.degree + "," + dc_status.vel + "," + dc_status.dir + ",";
 
   // UltrasoundSensor status
-  statusMsg = statusMsg + ultraSoundState.on + "," + ultraSoundState.dist + ",na,na,na,";
+  statusMsg = statusMsg + ultraSoundState.on + "," + ultraSoundState.dist + ",na,na,";
 
   // InfraredSensor status
-  statusMsg = statusMsg + irSensorStatus.on_off + "," + irSensorStatus.Distance + ",na,na,na,";
+  statusMsg = statusMsg + irSensorStatus.on_off + "," + irSensorStatus.Distance + ",na,na,";
 
   // ForceSensor status
-  statusMsg = statusMsg + "0,0,na,na,na," ;
+  statusMsg = statusMsg + "0,0,na,na," ;
 
   // Print msg
   if (sensorMode == true)
@@ -64,9 +66,14 @@ void processCommand(String commands[20], int numCommands) {
   } else {
     if (!sensorMode) {
       if (commands[0].equals("m_dcm")) {
+      
       } else if (commands[0].equals("m_stp")) {
-        driveStepper(commands[2].toInt(), commands[1].toInt());
+        // bom,m_stp,1,90,na,na,eom
+        updateStepperState(commands[2].toInt(), 200, 1);
+        driveStepper();
+      
       } else if (commands[0].equals("m_ser")) {
+      
         int on = commands[1].toInt();
         updateServoState(on == 1);
         if (on) {
@@ -121,14 +128,24 @@ void loop() {
   int numCommands = readCommand(commands);
   if (numCommands > 0)
       processCommand(commands, numCommands);
-
-  // Check individual motors
   
+  // Check individual motors
   if (sensorMode) {
-    driveServo();
-  }
+
+      // Servo Motor
+      driveServo();
+
+      // DC Motor
+//      updateState(1, 0, 0, 0);
+      //driveDCMotor();
+      
+      // Stepper Motor
+//      updateStepperState(0, 200, 1);
+//      updateIRSensorState(1);
+//      IRSensorAndStepper();
+  } 
   writeStatus();
-  delay(5000);  
+  delay(400);  
 }
 
 /* 

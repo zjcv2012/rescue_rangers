@@ -5,36 +5,42 @@ Servo svo;
 ServoState servoState;
 UltraSoundState ultraSoundState;
 
-void setupServo(int usPin) {
+void setupServo() {
   // Attach servo
-  svo.attach(7);
+  svo.attach(13);
   
   // Setup servo
   for (int svo_pos = svo.read(); svo_pos >= 0; svo_pos -= 1) { 
     svo.write(svo_pos);              
-    delay(15);                       
+    delay(2);                       
   }
   servoState.svo_pos = 0;  
-  servoState.on = true;  
+  servoState.on = 1;  
   
   // Setup Ultrasound
   ultraSoundState.MAX_DIST = 256;  
   ultraSoundState.MIN_DIST = 6;
-  ultraSoundState.pin = usPin;
-  ultraSoundState.dist = 500;
-  ultraSoundState.on = true;
+  ultraSoundState.pin = A3;
+  ultraSoundState.dist = 0;
+  ultraSoundState.on = 1;
 }
 
 void updateDistance() {
-  int volt = analogRead(ultraSoundState.pin);
-  ultraSoundState.dist = volt/2;
+  int sum = 0;
+  for (int i = 0; i < 5 ; i++)
+  {
+    int volt = analogRead(ultraSoundState.pin);
+    sum += volt;
+    delay(5);
+  }
+  ultraSoundState.dist = sum/5;
 }
 
-void updateServoState(bool on) {
+void updateServoState(int on) {
   servoState.on = on;
 }
 
-void updateUSSensorState(bool on) {
+void updateUSSensorState(int on) {
   ultraSoundState.on = on;
 }
 
@@ -44,36 +50,46 @@ void driveServo(int angle){
     if (currAngle > angle) {
       for (int svo_pos = currAngle; svo_pos <= angle; svo_pos += 1) { 
         svo.write(svo_pos);              
-        delay(15);
+        delay(2);
       }
     } else {
       for (int svo_pos = currAngle; svo_pos >= angle; svo_pos -= 1) { 
         svo.write(svo_pos);              
-        delay(15);
+        delay(2);
       }
     }
   }
 } 
 
 void driveServo() {
-  if ((servoState.on) && (ultraSoundState.on)){
+  if (ultraSoundState.on) {
     updateDistance();
-    if (ultraSoundState.dist < 20) {
-      int currAngle = svo.read();
-      int svo_pos = servoState.svo_pos;
-      if (currAngle == 180) {
-        for (svo_pos = 180; svo_pos >= 0; svo_pos -= 1) { 
+  }
+  
+  if (servoState.on) {
+    int currAngle = svo.read();
+     Serial.println(ultraSoundState.dist);
+    if (ultraSoundState.on && (ultraSoundState.dist > 20) && (ultraSoundState.dist < 500)) {
+      Serial.println("1");
+      if (currAngle > 0) {
+        Serial.println(currAngle);
+        for (int svo_pos = currAngle; svo_pos >= 0; svo_pos -= 1) { 
           svo.write(svo_pos);              
-          delay(15);                       
-        }    
-      } else if (currAngle == 0) {
-        for (svo_pos = 0; svo_pos <= 180; svo_pos += 1) { 
-          svo.write(svo_pos);              
-          delay(15);                       
-        }    
+          delay(2);                       
+        }
       }
     } else {
+      Serial.println("2");
+      Serial.println(svo.read());
+      for (int svo_pos = svo.read(); svo_pos >= 0; svo_pos -= 1) { 
+        Serial.println(svo_pos);
+        svo.write(svo_pos);              
+        delay(10);                       
+      }
+      for (int svo_pos = svo.read(); svo_pos <= 180; svo_pos += 1) { 
+        svo.write(svo_pos);              
+        delay(10);                       
+      }
     }
-    ultraSoundState.dist += 1;
   }
 }

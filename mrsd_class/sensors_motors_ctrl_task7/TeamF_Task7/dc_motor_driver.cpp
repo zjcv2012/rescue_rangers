@@ -11,7 +11,6 @@
 #define l1Pin 8
 #define l2Pin 7
 
-void DC_Initial();
 void DC_Move_Degree(int degree, int d);
 void DC_Move_PID(int velocity, int d);
 
@@ -47,16 +46,25 @@ int velocity;  //should be between 30 to 68
 int d;    // 1 or 0, 1 means forward, 0means backward
 int degree;   //should be larger than 30 degree
 
-void get_Motor_Status(DC_Motor_Status dc_Motor)
+void get_Motor_Status(DC_Motor_Status& dc_Motor)
 {
-  dc_Motor.onoff=vel==0?false:true;
+  dc_Motor.onoff= (vel==0?0:1);
   dc_Motor.degree=(currentLoc%180)*2;
   dc_Motor.vel=vel;
-  dc_Motor.dir=!dir;
+  if (dir == LOW)
+    dc_Motor.dir=HIGH;
+  else 
+    dc_Motor.dir=LOW;
 }
 
-/*
-void loop() {
+void updateState(int s, int v, int dr, int deg) {
+  state = s;
+  velocity = v;
+  d = dr;
+  degree = deg;
+}
+
+void driveDCMotor() {
   switch(state)
   {
     case 0:
@@ -80,7 +88,7 @@ void loop() {
     break;   
   }
   delay(5);
-}*/
+}
 
 //this function is called every 1 second
 void callback()
@@ -89,19 +97,17 @@ void callback()
   vel=((double)(currentLoc-lastLoc))/3;
   lastLoc=currentLoc;
 
-  if(dir==HIGH)
-  {
-    vel=-vel;  //make sure the vel is a positive value;
-  }
-  // Serial.print("current state is:  ");
+  vel = abs(vel);  //make sure the vel is a positive value;
+
+  //Serial.print("current state is:  ");
   // Serial.println(state);
 
   //Serial.print("current speed:  ");
-  // Serial.println(vel);
+  //Serial.println(vel);
   if(state==1)
   {
       // Serial.print("sensor value:  ");
-      // Serial.print(sensorSpeed);
+      //Serial.print(sensorSpeed);
   }
   if(state==2)
   {

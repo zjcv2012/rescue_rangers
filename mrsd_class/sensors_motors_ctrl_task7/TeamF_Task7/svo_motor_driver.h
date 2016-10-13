@@ -8,19 +8,19 @@ struct UltraSoundState {
   int MIN_DIST;
   int pin;
   int dist;
-  bool on;
+  int on;
 };
 
 struct ServoState {
   int svo_pos;
-  bool on;
+  int on;
 }; 
 
-void setupServo(int usPin);
+void setupServo();
 void driveServo(int angle);
 void driveServo();
-void updateUSSensorState(bool on);
-void updateServoState(bool on);
+void updateUSSensorState(int on);
+void updateServoState(int on);
 
 extern UltraSoundState ultraSoundState;
 extern ServoState servoState;
