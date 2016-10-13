@@ -7,7 +7,7 @@ bool sensorMode;
 void setup() {
 
   // Global mode
-  sensorMode = true;
+  sensorMode = false;
 
   // Setup motors
   DC_Initial();
@@ -99,7 +99,7 @@ void processCommand(String commands[20], int numCommands) {
         irSensorStatus.on_off = on;
       } else if (commands[0].equals("s_usr")) {
         int on = commands[1].toInt();
-        updateUSSensorState(on == 1);
+        updateUSSensorState(on);
       }
     }
   }
@@ -148,7 +148,6 @@ void loop() {
   // Check individual motors
   if (sensorMode) {
 
-
       // DC Motor
       updateState(1, 0, 0, 0);
       driveDCMotor();
@@ -158,7 +157,8 @@ void loop() {
       updateIRSensorState(1);
       IRSensorAndStepper();
 
-      // Servo Motor
+      // Enable Ultrasonic and Servo Motor 
+      updateUSSensorState(1);
       driveServo();
   } else {
     DC_Motor_Status dc_status;

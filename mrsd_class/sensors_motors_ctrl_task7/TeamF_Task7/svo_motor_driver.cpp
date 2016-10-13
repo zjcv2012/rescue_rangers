@@ -54,19 +54,25 @@ void driveServo(int angle){
         delay(20);
       }
     }
+    servoState.svo_pos = angle;
   }
 } 
+
+int computeAngle(int dist) {
+  if (dist < 6) {
+    return 0;
+  } else if (dist > 24) {
+    return 180;
+  } else {
+    return 10*(dist-6);
+  }
+}
 
 void driveServo() {
 
   updateDistance();
-  if (servoState.on == 1) {
-    if (ultraSoundState.dist < 30) {
-      driveServo(0);
-    } else if (ultraSoundState.dist > 30 && ultraSoundState.dist < 70) {
-      driveServo(90);
-    } else {
-      driveServo(180);
-    }
+  if ((servoState.on == 1) && (ultraSoundState.on == 1)) {
+    int angle = computeAngle(ultraSoundState.dist);
+    driveServo(angle);
   }
 }
