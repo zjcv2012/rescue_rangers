@@ -2,12 +2,12 @@
 #include "stepper_motor_driver.h"
 #include "dc_motor_driver.h"
 
-bool sensorMode = true;
+bool sensorMode;
 
 void setup() {
 
   // Global mode
-  sensorMode = false;
+  sensorMode = true;
 
   // Setup motors
   DC_Initial();
@@ -73,9 +73,9 @@ void processCommand(String commands[20], int numCommands) {
         String vel = commands[4];
         if (on.toInt() == 1) {
           if (vel.equals("na"))
-            updateState(3, 0, dir.toInt()*10, deg.toInt());
+            updateState(3, 0, dir.toInt(), deg.toInt());
           else 
-            updateState(2, vel.toInt(), dir.toInt()*10, 0);
+            updateState(2, vel.toInt(), dir.toInt(), 0);
         } else {
             updateState(0, 0, 0, 0);
         }
@@ -161,11 +161,13 @@ void loop() {
       // Servo Motor
       driveServo();
   } else {
-    updateState(0, 0, 0, 0);
-    driveDCMotor();  
-    delay(500);
+    DC_Motor_Status dc_status;
+    get_Motor_Status(dc_status);
+    Serial.println(dc_status.state);
+    driveDCMotor();
   }
   writeStatus();
+  delay(500);
 }
 
 

@@ -22,6 +22,8 @@ volatile unsigned long last_micros;
 
 //Initialization for motr
 int velocity;
+int d;
+int degree;
 int encoder0Pos;
 int currentLoc=0;
 int lastLoc=0;
@@ -29,7 +31,7 @@ double vel; //velocity for encoder
 bool onoff; //shows that motor is moving or not, true means motor is moving.
 
 int state=3; //state of the motor, 0 is for motionless, 1 is for sensor input, 2 for is pid control,3 is for position control
-int dir=LOW; //direction of the motor, LOW means forward
+int dir=0; //direction of the motor, LOW means forward
 
 //Define global variables for state1
 int sensorPin = A0;    // select the input pin for the potentiometer
@@ -58,19 +60,19 @@ void callback()
     lastLoc=currentLoc;
     vel=abs(vel);
   }
+  if(state==2)
+  {
+      myPID.SetMode(AUTOMATIC);
+  } 
+  else
+  {
+      myPID.SetMode(MANUAL);
+  }    
 }
 
 
 void driveDCMotor() {
   callback();
-  if(state==2)
-  {
-    myPID.SetMode(AUTOMATIC);
-  } 
-  else
-  {
-    myPID.SetMode(MANUAL);
-  }    
   
   switch(state)
   {
@@ -83,13 +85,13 @@ void driveDCMotor() {
       analogWrite(E1_2Pin, sensorSpeed);
     break;
     case 2:
-      DC_Move_PID(velocity, 0);
+      DC_Move_PID(velocity, d);
     break;
     case 3:
        if(DC_Move_Start==false)
        {
-         //Serial.println("GoGoGo!");
-         DC_Move_Degree(360, 1);
+         Serial.println("GoGoGo!");
+         DC_Move_Degree(degree, d);
        }
     break;
     default:
@@ -135,14 +137,18 @@ void debounce_Encoder() {
     //currentLoc=encoder0Pos;
     if(state==3)
     {
+     //Serial.println(encoder0Pos);
+     Serial.println(destLoc-encoder0Pos);
       if(DC_Move_Start==true)
      {
-        if(dir==LOW)
+     
+        if(dir==0)
         { 
           if((encoder0Pos+error)>=destLoc)
           {
              DC_Move_Start=false;
-            analogWrite(E1_2Pin, 0); 
+            analogWrite(E1_2Pin, 0);
+            //Serial.println("State"); 
             state=0;   //let it stop
           }
         }
@@ -233,34 +239,35 @@ void DC_Initial()
     if(d==1)
     {
       destLoc=encoder0Pos+increStep;
-      dir=LOW;
+      dir=0;
+      Serial.println("forward");
     }
     else
     {
       destLoc=encoder0Pos-increStep;
-      dir=HIGH;
+      dir=1;
+      Serial.println("reverse");
     }
      digitalWrite(l1Pin,dir);
      digitalWrite(l2Pin,!dir);
-     analogWrite(E1_2Pin, 127);    
+     analogWrite(E1_2Pin, 140);    
   }
 
  
 void get_Motor_Status(DC_Motor_Status& dc_Motor)
 {
+  callback();
   dc_Motor.onoff= (vel==0?0:1);
   dc_Motor.degree=(currentLoc%180)*2;
   dc_Motor.vel=vel;
-  if (dir == LOW)
-    dc_Motor.dir=HIGH;
-  else 
-    dc_Motor.dir=LOW;
+  dc_Motor.dir=!dir;
+  dc_Motor.state = state;
 }
 
 void updateState(int s, int v, int dr, int deg) {
   state = s;
   velocity = v;
-//  d = dr;
-//  degree = deg;
+  d = dr;
+  degree = deg;
 }
 

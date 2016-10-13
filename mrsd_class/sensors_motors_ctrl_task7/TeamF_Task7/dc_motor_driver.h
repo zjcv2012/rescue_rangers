@@ -4,6 +4,7 @@ struct DC_Motor_Status{
   int degree;
   int vel;
   int dir;
+  int state;
 };
 
 
