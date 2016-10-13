@@ -66,7 +66,15 @@ void processCommand(String commands[20], int numCommands) {
   } else {
     if (!sensorMode) {
       if (commands[0].equals("m_dcm")) {
-      
+        // bom,m_dcm,1,90,na,na,eom
+        String vel = commands[2];
+        String dir = commands[3];
+        String deg = commands[4];
+        if (vel.equals("na"))
+          updateState(3, 0, dir.toInt()*10, deg.toInt());
+        else 
+          updateState(2, vel.toInt(), dir.toInt()*10, 0);
+        driveDCMotor();  
       } else if (commands[0].equals("m_stp")) {
         // bom,m_stp,1,90,na,na,eom
         updateStepperState(commands[2].toInt(), 200, 1);
@@ -106,6 +114,7 @@ int readCommand(String commands[20]) {
     if (!input.startsWith("bom") || !input.endsWith("eom\n")) 
       return 0;
     input.trim();
+    Serial.println("log.." + input);
 
     String currString = "";
     int currPos = input.indexOf(',', 0) + 1;
