@@ -10,8 +10,8 @@ void setup() {
   sensorMode = true;
 
   // Setup motors
-  setupStepper();
   DC_Initial();
+  setupStepper();
   setupServo();
 
   // Initialize serial
@@ -161,6 +161,8 @@ void loop() {
   }
   writeStatus();
 }
+
+
 
 /* 
  *  TEST CASES

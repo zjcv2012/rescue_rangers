@@ -1,5 +1,4 @@
 #include <Arduino.h>
-#include "TimerOne.h"
 #include "PID_v1.h"
 #include "dc_motor_driver.h"
 
@@ -11,19 +10,25 @@
 #define l1Pin 8
 #define l2Pin 7
 
+void DC_Initial();
 void DC_Move_Degree(int degree, int d);
 void DC_Move_PID(int velocity, int d);
+
+
 
 // Initialization for Interrupt
 long debounce_time=150;    // the debounce time; increase if the output flickers
 volatile unsigned long last_micros;
 
-//Initialization for motor
+//Initialization for motr
+int velocity;
 int encoder0Pos;
 int currentLoc=0;
 int lastLoc=0;
 double vel; //velocity for encoder
-int state=1; //state of the motor, 0 is for motionless, 1 is for sensor input, 2 for is pid control,3 is for position control
+bool onoff; //shows that motor is moving or not, true means motor is moving.
+
+int state=3; //state of the motor, 0 is for motionless, 1 is for sensor input, 2 for is pid control,3 is for position control
 int dir=LOW; //direction of the motor, LOW means forward
 
 //Define global variables for state1
@@ -41,30 +46,32 @@ int destLoc;
 int error; //for position amendment
 bool DC_Move_Start=false;  // to make sure DC moves only if it is required
 
-//Define variables for input of DC_Move_PID and DC_Move_Degree
-int velocity;  //should be between 30 to 68
-int d;    // 1 or 0, 1 means forward, 0means backward
-int degree;   //should be larger than 30 degree
-
-void get_Motor_Status(DC_Motor_Status& dc_Motor)
+//this function is called every 1 second
+void callback()
 {
-  dc_Motor.onoff= (vel==0?0:1);
-  dc_Motor.degree=(currentLoc%180)*2;
-  dc_Motor.vel=vel;
-  if (dir == LOW)
-    dc_Motor.dir=HIGH;
-  else 
-    dc_Motor.dir=LOW;
+  if((long)(micros()-last_micros) >= 1000000)
+  {
+    double time = (double(micros() - last_micros))/1000000;
+    last_micros=micros();
+    currentLoc=encoder0Pos;
+    vel=((double)(currentLoc-lastLoc))/(3*time);
+    lastLoc=currentLoc;
+    vel=abs(vel);
+  }
 }
 
-void updateState(int s, int v, int dr, int deg) {
-  state = s;
-  velocity = v;
-  d = dr;
-  degree = deg;
-}
 
 void driveDCMotor() {
+  callback();
+  if(state==2)
+  {
+    myPID.SetMode(AUTOMATIC);
+  } 
+  else
+  {
+    myPID.SetMode(MANUAL);
+  }    
+  
   switch(state)
   {
     case 0:
@@ -76,53 +83,19 @@ void driveDCMotor() {
       analogWrite(E1_2Pin, sensorSpeed);
     break;
     case 2:
-      DC_Move_PID(velocity, d);
+      DC_Move_PID(velocity, 0);
     break;
     case 3:
        if(DC_Move_Start==false)
        {
-         DC_Move_Degree(degree, d);
+         //Serial.println("GoGoGo!");
+         DC_Move_Degree(360, 1);
        }
     break;
     default:
     break;   
   }
   delay(5);
-}
-
-//this function is called every 1 second
-void callback()
-{
-  currentLoc=encoder0Pos;
-  vel=((double)(currentLoc-lastLoc))/3;
-  lastLoc=currentLoc;
-
-  vel = abs(vel);  //make sure the vel is a positive value;
-
-  //Serial.print("current state is:  ");
-  // Serial.println(state);
-
-  //Serial.print("current speed:  ");
-  //Serial.println(vel);
-  if(state==1)
-  {
-      // Serial.print("sensor value:  ");
-      //Serial.print(sensorSpeed);
-  }
-  if(state==2)
-  {
-    myPID.SetMode(AUTOMATIC);
-  } 
-  else
-  {
-    myPID.SetMode(MANUAL);
-   }
-  
- if(state==3)
- {
-  // Serial.println(currentLoc);
-  // Serial.println(destLoc);
-  }
 }
 
 void Interrupt()
@@ -145,6 +118,7 @@ void debounceInterrupt()
     last_micros=micros();
   }
 }
+
 
 //this is for encoder interruption
 void debounce_Encoder() {
@@ -178,22 +152,19 @@ void debounce_Encoder() {
           {
              DC_Move_Start=false;
             analogWrite(E1_2Pin, 0);
-            // Serial.println("stop"); 
+            Serial.println("stop"); 
             state=0;  //let it stop
           }
         }
       }
     }
+ // Serial.println (encoder0Pos, DEC);          // debug - remember to comment out
 }
 
 
 void DC_Initial()
 {
-    //Timer1 Initialization
-  Timer1.initialize(1000000);
-  Timer1.attachInterrupt(callback);  // attaches callback() as a timer overflow interrupt 
-
-//Initialize Input
+  //Initialize Input
   pinMode(encoder0PinA, INPUT); 
   digitalWrite(encoder0PinA, HIGH);       // turn on pullup resistor
   pinMode(encoder0PinB, INPUT); 
@@ -217,7 +188,7 @@ void DC_Initial()
   analogWrite(E1_2Pin, 0);   
    
   Serial.begin (9600);
-  //Serial.println("start");                // a personal quirk
+  Serial.println("start");                // a personal quirk
 
   
 
@@ -236,6 +207,7 @@ void DC_Initial()
       myPID.Compute();
       digitalWrite(l1Pin,dir);
       digitalWrite(l2Pin,!dir);
+
       analogWrite(E1_2Pin, Output);
   }
 
@@ -274,4 +246,21 @@ void DC_Initial()
   }
 
  
+void get_Motor_Status(DC_Motor_Status& dc_Motor)
+{
+  dc_Motor.onoff= (vel==0?0:1);
+  dc_Motor.degree=(currentLoc%180)*2;
+  dc_Motor.vel=vel;
+  if (dir == LOW)
+    dc_Motor.dir=HIGH;
+  else 
+    dc_Motor.dir=LOW;
+}
+
+void updateState(int s, int v, int dr, int deg) {
+  state = s;
+  velocity = v;
+//  d = dr;
+//  degree = deg;
+}
 
