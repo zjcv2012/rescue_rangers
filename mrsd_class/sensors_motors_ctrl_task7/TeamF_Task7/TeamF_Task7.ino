@@ -102,6 +102,7 @@ int readCommand(String commands[20]) {
   int count = 0;
   if (Serial.available() > 0) {
     String input = Serial.readString();
+    Serial.println("log.." + input);
     if (!input.startsWith("bom") || !input.endsWith("eom\n")) 
       return 0;
     input.trim();
