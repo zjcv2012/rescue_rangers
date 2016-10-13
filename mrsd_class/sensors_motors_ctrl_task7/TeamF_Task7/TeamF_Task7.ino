@@ -62,6 +62,7 @@ void processCommand(String commands[20], int numCommands) {
     return;
   } else if (commands[0].equals("gui-based")) {
     sensorMode = false;
+    updateState(0, 0, 0, 0);
     return;
   } else {
     if (!sensorMode) {

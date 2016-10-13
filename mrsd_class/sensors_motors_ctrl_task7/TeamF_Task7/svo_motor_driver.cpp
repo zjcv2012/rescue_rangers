@@ -59,12 +59,12 @@ void driveServo(int angle){
 } 
 
 int computeAngle(int dist) {
-  if (dist < 6) {
+  if (dist < 12) {
     return 0;
-  } else if (dist > 24) {
+  } else if (dist > 48) {
     return 180;
   } else {
-    return 10*(dist-6);
+    return 5*(dist-6);
   }
 }
 
