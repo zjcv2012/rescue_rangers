@@ -10,9 +10,9 @@ void setup() {
   sensorMode = true;
 
   // Setup motors
-  setupServo();
   setupStepper();
   DC_Initial();
+  setupServo();
 
   // Initialize serial
   Serial.begin(9600);
@@ -73,10 +73,10 @@ void processCommand(String commands[20], int numCommands) {
         driveStepper();
       
       } else if (commands[0].equals("m_ser")) {
-      
+        // bom,m_ser,1,90,na,na,eom
         int on = commands[1].toInt();
-        updateServoState(on == 1);
-        if (on) {
+        updateServoState(on);
+        if (on == 1) {
           int angle = commands[2].toInt();
           driveServo(angle);
         }
@@ -130,11 +130,9 @@ void loop() {
   if (numCommands > 0)
       processCommand(commands, numCommands);
   
-// Check individual motors
+  // Check individual motors
   if (sensorMode) {
 
-      // Servo Motor
-      driveServo();
 
       // DC Motor
       updateState(1, 0, 0, 0);
@@ -144,7 +142,13 @@ void loop() {
       updateStepperState(0, 200, 1);
       updateIRSensorState(1);
       IRSensorAndStepper();
+
+      // Servo Motor
+      driveServo();
   } 
+  else {
+    delay(1000);
+  }
   writeStatus();
 }
 

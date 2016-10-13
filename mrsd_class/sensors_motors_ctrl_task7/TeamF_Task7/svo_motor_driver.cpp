@@ -44,12 +44,12 @@ void driveServo(int angle){
   if (servoState.on) {
     int currAngle = svo.read();
     if (currAngle > angle) {
-      for (int svo_pos = currAngle; svo_pos <= angle; svo_pos += 1) { 
+      for (int svo_pos = currAngle; svo_pos >= angle; svo_pos -= 1) { 
         svo.write(svo_pos);              
         delay(20);
       }
     } else {
-      for (int svo_pos = currAngle; svo_pos >= angle; svo_pos -= 1) { 
+      for (int svo_pos = currAngle; svo_pos <= angle; svo_pos += 1) { 
         svo.write(svo_pos);              
         delay(20);
       }
@@ -60,15 +60,14 @@ void driveServo(int angle){
 void driveServo() {
 
   updateDistance();
-  if (ultraSoundState.dist > 30) {
-  
-    for (int svo_pos = 180; svo_pos >= 0; svo_pos -= 1) { 
-      svo.write(svo_pos);              
-      delay(20);                       
-    }
-    for (int svo_pos = 0; svo_pos <= 180; svo_pos += 1) { 
-      svo.write(svo_pos);              
-      delay(20);                       
-    }
+  if ((servoState.on == 1) && (ultraSoundState.dist > 30)) {
+      for (int svo_pos = 180; svo_pos >= 0; svo_pos -= 1) { 
+        svo.write(svo_pos);              
+        delay(20);                       
+      }
+      for (int svo_pos = 0; svo_pos <= 180; svo_pos += 1) { 
+        svo.write(svo_pos);              
+        delay(20);                       
+      }
   }
 }
