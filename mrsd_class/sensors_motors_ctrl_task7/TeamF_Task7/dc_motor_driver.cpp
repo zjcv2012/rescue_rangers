@@ -138,7 +138,7 @@ void debounce_Encoder() {
     if(state==3)
     {
      //Serial.println(encoder0Pos);
-     Serial.println(destLoc-encoder0Pos);
+     //Serial.println(destLoc-encoder0Pos);
       if(DC_Move_Start==true)
      {
      

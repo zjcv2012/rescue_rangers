@@ -60,14 +60,13 @@ void driveServo(int angle){
 void driveServo() {
 
   updateDistance();
-  if ((servoState.on == 1) && (ultraSoundState.dist < 30)) {
-      for (int svo_pos = 180; svo_pos >= 0; svo_pos -= 1) { 
-        svo.write(svo_pos);              
-        delay(20);                       
-      }
-      for (int svo_pos = 0; svo_pos <= 180; svo_pos += 1) { 
-        svo.write(svo_pos);              
-        delay(20);                       
-      }
+  if (servoState.on == 1) {
+    if (ultraSoundState.dist < 30) {
+      driveServo(0);
+    } else if (ultraSoundState.dist > 30 && ultraSoundState.dist < 70) {
+      driveServo(90);
+    } else {
+      driveServo(180);
+    }
   }
 }
