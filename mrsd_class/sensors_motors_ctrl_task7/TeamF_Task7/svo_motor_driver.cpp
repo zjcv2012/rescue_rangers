@@ -9,11 +9,6 @@ void setupServo() {
   // Attach servo
   svo.attach(13);
   
-  // Setup servo
-  for (int svo_pos = svo.read(); svo_pos >= 0; svo_pos -= 1) { 
-    svo.write(svo_pos);              
-    delay(2);                       
-  }
   servoState.svo_pos = 0;  
   servoState.on = 1;  
   
@@ -23,6 +18,7 @@ void setupServo() {
   ultraSoundState.pin = A3;
   ultraSoundState.dist = 0;
   ultraSoundState.on = 1;
+  
 }
 
 void updateDistance() {
@@ -50,46 +46,29 @@ void driveServo(int angle){
     if (currAngle > angle) {
       for (int svo_pos = currAngle; svo_pos <= angle; svo_pos += 1) { 
         svo.write(svo_pos);              
-        delay(2);
+        delay(20);
       }
     } else {
       for (int svo_pos = currAngle; svo_pos >= angle; svo_pos -= 1) { 
         svo.write(svo_pos);              
-        delay(2);
+        delay(20);
       }
     }
   }
 } 
 
 void driveServo() {
-  if (ultraSoundState.on) {
-    updateDistance();
-  }
+
+  updateDistance();
+  if (ultraSoundState.dist > 30) {
   
-  if (servoState.on) {
-    int currAngle = svo.read();
-     Serial.println(ultraSoundState.dist);
-    if (ultraSoundState.on && (ultraSoundState.dist > 20) && (ultraSoundState.dist < 500)) {
-      Serial.println("1");
-      if (currAngle > 0) {
-        Serial.println(currAngle);
-        for (int svo_pos = currAngle; svo_pos >= 0; svo_pos -= 1) { 
-          svo.write(svo_pos);              
-          delay(2);                       
-        }
-      }
-    } else {
-      Serial.println("2");
-      Serial.println(svo.read());
-      for (int svo_pos = svo.read(); svo_pos >= 0; svo_pos -= 1) { 
-        Serial.println(svo_pos);
-        svo.write(svo_pos);              
-        delay(10);                       
-      }
-      for (int svo_pos = svo.read(); svo_pos <= 180; svo_pos += 1) { 
-        svo.write(svo_pos);              
-        delay(10);                       
-      }
+    for (int svo_pos = 180; svo_pos >= 0; svo_pos -= 1) { 
+      svo.write(svo_pos);              
+      delay(20);                       
+    }
+    for (int svo_pos = 0; svo_pos <= 180; svo_pos += 1) { 
+      svo.write(svo_pos);              
+      delay(20);                       
     }
   }
 }

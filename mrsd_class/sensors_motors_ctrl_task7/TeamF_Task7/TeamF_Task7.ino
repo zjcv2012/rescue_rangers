@@ -121,31 +121,31 @@ int readCommand(String commands[20]) {
   return count;
 }
 
+
 void loop() {
-  
+
   // Check UI override
   String commands[20];
   int numCommands = readCommand(commands);
   if (numCommands > 0)
       processCommand(commands, numCommands);
   
-  // Check individual motors
+// Check individual motors
   if (sensorMode) {
 
       // Servo Motor
       driveServo();
 
       // DC Motor
-//      updateState(1, 0, 0, 0);
-      //driveDCMotor();
+      updateState(1, 0, 0, 0);
+      driveDCMotor();
       
       // Stepper Motor
-//      updateStepperState(0, 200, 1);
-//      updateIRSensorState(1);
-//      IRSensorAndStepper();
+      updateStepperState(0, 200, 1);
+      updateIRSensorState(1);
+      IRSensorAndStepper();
   } 
   writeStatus();
-  delay(400);  
 }
 
 /* 
