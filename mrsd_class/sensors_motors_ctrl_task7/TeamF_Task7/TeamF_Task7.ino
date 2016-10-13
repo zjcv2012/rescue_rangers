@@ -7,7 +7,7 @@ bool sensorMode = true;
 void setup() {
 
   // Global mode
-  sensorMode = true;
+  sensorMode = false;
 
   // Setup motors
   DC_Initial();
@@ -33,7 +33,7 @@ void writeStatus() {
   // DC status
   DC_Motor_Status dc_status;
   get_Motor_Status(dc_status);
-  statusMsg = statusMsg + dc_status.onoff + "," + dc_status.degree + "," + dc_status.vel + "," + dc_status.dir + ",";
+  statusMsg = statusMsg + dc_status.onoff + "," + dc_status.degree + "," + dc_status.dir + "," + dc_status.vel + ",";
 
   // UltrasoundSensor status
   statusMsg = statusMsg + ultraSoundState.on + "," + ultraSoundState.dist + ",na,na,";
@@ -67,13 +67,18 @@ void processCommand(String commands[20], int numCommands) {
     if (!sensorMode) {
       if (commands[0].equals("m_dcm")) {
         // bom,m_dcm,1,90,na,na,eom
+        String on = commands[1];
         String vel = commands[2];
         String dir = commands[3];
         String deg = commands[4];
-        if (vel.equals("na"))
-          updateState(3, 0, dir.toInt()*10, deg.toInt());
-        else 
-          updateState(2, vel.toInt(), dir.toInt()*10, 0);
+        if (on.toInt() == 1) {
+          if (vel.equals("na"))
+            updateState(3, 0, dir.toInt()*10, deg.toInt());
+          else 
+            updateState(2, vel.toInt(), dir.toInt()*10, 0);
+        } else {
+            updateState(0, 0, 0, 0);
+        }
         driveDCMotor();  
       } else if (commands[0].equals("m_stp")) {
         // bom,m_stp,1,90,na,na,eom
@@ -155,9 +160,10 @@ void loop() {
 
       // Servo Motor
       driveServo();
-  } 
-  else {
-    delay(1000);
+  } else {
+    updateState(0, 0, 0, 0);
+    driveDCMotor();  
+    delay(500);
   }
   writeStatus();
 }
