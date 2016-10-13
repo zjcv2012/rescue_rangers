@@ -64,7 +64,7 @@ int computeAngle(int dist) {
   } else if (dist > 48) {
     return 180;
   } else {
-    return 5*(dist-6);
+    return 5*(dist-12);
   }
 }
 
