@@ -68,9 +68,9 @@ void processCommand(String commands[20], int numCommands) {
       if (commands[0].equals("m_dcm")) {
         // bom,m_dcm,1,90,na,na,eom
         String on = commands[1];
-        String vel = commands[2];
+        String deg = commands[2];
         String dir = commands[3];
-        String deg = commands[4];
+        String vel = commands[4];
         if (on.toInt() == 1) {
           if (vel.equals("na"))
             updateState(3, 0, dir.toInt()*10, deg.toInt());
