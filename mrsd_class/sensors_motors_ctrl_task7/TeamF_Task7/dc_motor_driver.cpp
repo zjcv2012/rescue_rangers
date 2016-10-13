@@ -259,6 +259,8 @@ void get_Motor_Status(DC_Motor_Status& dc_Motor)
   callback();
   dc_Motor.onoff= (vel==0?0:1);
   dc_Motor.degree=(currentLoc%180)*2;
+  if (dc_Motor.degree < 0)
+    dc_Motor.degree += 360;
   dc_Motor.vel=vel;
   dc_Motor.dir=!dir;
   dc_Motor.state = state;
