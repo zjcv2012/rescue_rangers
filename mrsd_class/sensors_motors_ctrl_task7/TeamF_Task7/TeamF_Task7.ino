@@ -170,7 +170,7 @@ void loop() {
     driveDCMotor();
   }
   writeStatus();
-  delay(500);
+  delay(50);
 }
 
 
