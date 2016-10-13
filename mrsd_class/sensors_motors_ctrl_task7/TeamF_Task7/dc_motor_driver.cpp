@@ -90,7 +90,7 @@ void driveDCMotor() {
     case 3:
        if(DC_Move_Start==false)
        {
-         Serial.println("GoGoGo!");
+         //Serial.println("GoGoGo!");
          DC_Move_Degree(degree, d);
        }
     break;
@@ -158,7 +158,7 @@ void debounce_Encoder() {
           {
              DC_Move_Start=false;
             analogWrite(E1_2Pin, 0);
-            Serial.println("stop"); 
+            //Serial.println("stop"); 
             state=0;  //let it stop
           }
         }
@@ -194,7 +194,7 @@ void DC_Initial()
   analogWrite(E1_2Pin, 0);   
    
   Serial.begin (9600);
-  Serial.println("start");                // a personal quirk
+  //Serial.println("start");                // a personal quirk
 
   
 
@@ -240,13 +240,13 @@ void DC_Initial()
     {
       destLoc=encoder0Pos+increStep;
       dir=0;
-      Serial.println("forward");
+      //Serial.println("forward");
     }
     else
     {
       destLoc=encoder0Pos-increStep;
       dir=1;
-      Serial.println("reverse");
+      //Serial.println("reverse");
     }
      digitalWrite(l1Pin,dir);
      digitalWrite(l2Pin,!dir);

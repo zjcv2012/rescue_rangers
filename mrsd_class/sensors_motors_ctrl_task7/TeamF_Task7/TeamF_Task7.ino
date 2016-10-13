@@ -81,8 +81,11 @@ void processCommand(String commands[20], int numCommands) {
         }
         driveDCMotor();  
       } else if (commands[0].equals("m_stp")) {
-        // bom,m_stp,1,90,na,na,eom
-        updateStepperState(commands[2].toInt(), 200, 1);
+        // bom,m_stp,1,90,1,na,eom
+        // bom,m_stp,1,90,0,na,eom
+        int angle = commands[2].toInt();
+        int dir = commands[3].toInt() == 1 ? 1: -1;
+        updateStepperState(angle*dir, 200, 1);
         driveStepper();
       
       } else if (commands[0].equals("m_ser")) {
@@ -107,7 +110,7 @@ void processCommand(String commands[20], int numCommands) {
 
 void displayCommands(String commands[20], int numCommands) {
   for (int i=0 ; i<numCommands ; i++) {
-    Serial.println(commands[i]);
+    //Serial.println(commands[i]);
   }
 }
 
@@ -119,7 +122,7 @@ int readCommand(String commands[20]) {
     if (!input.startsWith("bom") || !input.endsWith("eom\n")) 
       return 0;
     input.trim();
-    Serial.println("log.." + input);
+    //Serial.println("log.." + input);
 
     String currString = "";
     int currPos = input.indexOf(',', 0) + 1;
@@ -163,7 +166,7 @@ void loop() {
   } else {
     DC_Motor_Status dc_status;
     get_Motor_Status(dc_status);
-    Serial.println(dc_status.state);
+    //Serial.println(dc_status.state);
     driveDCMotor();
   }
   writeStatus();
