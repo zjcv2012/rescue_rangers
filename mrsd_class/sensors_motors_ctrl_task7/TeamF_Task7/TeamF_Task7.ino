@@ -41,8 +41,8 @@ void writeStatus() {
   // InfraredSensor status
   statusMsg = statusMsg + irSensorStatus.on_off + "," + irSensorStatus.Distance + ",na,na,";
 
-  // ForceSensor status
-  statusMsg = statusMsg + "0,0,na,na," ;
+  // Potentio,eter status
+  statusMsg = statusMsg + "1," + dc_status.sensorValue + ",na,na," ;
 
   // Print msg
   if (sensorMode == true)

@@ -5,6 +5,7 @@ struct DC_Motor_Status{
   int vel;
   int dir;
   int state;
+  int sensorValue;
 };
 
 

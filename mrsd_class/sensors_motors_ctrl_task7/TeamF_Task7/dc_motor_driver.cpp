@@ -262,6 +262,7 @@ void get_Motor_Status(DC_Motor_Status& dc_Motor)
   dc_Motor.vel=vel;
   dc_Motor.dir=!dir;
   dc_Motor.state = state;
+  dc_Motor.sensorValue = sensorValue;
 }
 
 void updateState(int s, int v, int dr, int deg) {
