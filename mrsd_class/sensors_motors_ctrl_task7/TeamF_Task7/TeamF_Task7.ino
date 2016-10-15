@@ -97,7 +97,6 @@ void processCommand(String commands[20], int numCommands) {
           int angle = commands[2].toInt();
           driveServo(angle);
         }
-      } else if (commands[0].equals("s_for")) {
       } else if (commands[0].equals("s_isr")) {
         int on = commands[1].toInt();
         irSensorStatus.on_off = on;
@@ -106,12 +105,6 @@ void processCommand(String commands[20], int numCommands) {
         updateUSSensorState(on);
       }
     }
-  }
-}
-
-void displayCommands(String commands[20], int numCommands) {
-  for (int i=0 ; i<numCommands ; i++) {
-    //Serial.println(commands[i]);
   }
 }
 
@@ -179,45 +172,40 @@ void loop() {
 /* 
  *  TEST CASES
  *  
- *  bom,sensor-based,eom  - Serial input based functinality disabled
- *  bom,gui-based,eom  - Sensor based functionality disabled
- *  
- * 
  * bom,sensor-based,eom
-   bom,m_ser,1,0,na,na,eom
-   bom,m_stp,1,0,na,na,eom
-bom,m_dcm,1,0,na,0,eom
-bom,s_usr,1,0,na,na,eom
-bom,s_isr,1,0,na,na,eom
-bom,s_for,1,0,na,na,eom
-bom,m_ser,0,0,na,na,eom
-bom,m_ser,1,0,na,na,eom
-bom,m_stp,0,0,na,na,eom
-bom,m_stp,1,0,na,na,eom
-bom,m_dcm,0,0,na,na,eom
-bom,m_dcm,1,0,na,na,eom
-bom,s_usr,0,0,na,na,eom
-bom,s_usr,1,0,na,na,eom
-bom,s_irs,0,0,na,na,eom
-bom,s_irs,1,0,na,na,eom
-bom,s_for,0,0,na,na,eom
-bom,s_for,1,0,na,na,eom
-bom,s_for,0,0,na,na,eom
-bom,gui-based,eom
-bom,m_ser,1,0,na,na,eom
-bom,m_stp,1,0,na,na,eom
-bom,m_dcm,1,0,na,0,eom
-bom,s_usr,1,0,na,na,eom
-bom,s_isr,1,0,na,na,eom
-bom,s_for,1,0,na,na,eom
-bom,m_ser,1,20,0,na,eom
-bom,m_ser,1,20,1,na,eom
-bom,m_stp,1,30,0,na,eom
-bom,m_stp,1,30,1,na,eom
-bom,m_dcm,1,na,0,400,eom
-bom,m_dcm,1,na,1,400,eom
-bom,m_dcm,1,39,1,na,eom
-bom,m_dcm,1,39,0,na,eom
- * /
+ * bom,m_ser,1,0,na,na,eom
+ * bom,m_stp,1,0,na,na,eom
+ * bom,m_dcm,1,0,na,0,eom
+ * bom,s_usr,1,0,na,na,eom
+ * bom,s_isr,1,0,na,na,eom
+ * bom,s_for,1,0,na,na,eom
+ * bom,m_ser,0,0,na,na,eom
+ * bom,m_ser,1,0,na,na,eom
+ * bom,m_stp,0,0,na,na,eom
+ * bom,m_stp,1,0,na,na,eom
+ * bom,m_dcm,0,0,na,na,eom
+ * bom,m_dcm,1,0,na,na,eom
+ * bom,s_usr,0,0,na,na,eom
+ * bom,s_usr,1,0,na,na,eom
+ * bom,s_irs,0,0,na,na,eom
+ * bom,s_irs,1,0,na,na,eom
+ * bom,s_for,0,0,na,na,eom
+ * bom,s_for,1,0,na,na,eom
+ * bom,s_for,0,0,na,na,eom
+ * bom,gui-based,eom
+ * bom,m_ser,1,0,na,na,eom
+ * bom,m_stp,1,0,na,na,eom
+ * bom,m_dcm,1,0,na,0,eom
+ * bom,s_usr,1,0,na,na,eom
+ * bom,s_isr,1,0,na,na,eom
+ * bom,s_for,1,0,na,na,eom
+ * bom,m_ser,1,20,0,na,eom
+ * bom,m_ser,1,20,1,na,eom
+ * bom,m_stp,1,30,0,na,eom
+ * bom,m_stp,1,30,1,na,eom
+ * bom,m_dcm,1,na,0,400,eom
+ * bom,m_dcm,1,na,1,400,eom
+ * bom,m_dcm,1,39,1,na,eom
+ * bom,m_dcm,1,39,0,na,eom
  */
 
