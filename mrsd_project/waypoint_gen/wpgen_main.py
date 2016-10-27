@@ -4,9 +4,9 @@ import numpy as np
 import matplotlib.pyplot as plt
 import math
 
-mpl.rcParams['legend.fontsize'] = 10
-
 R = 6370000
+ANGLE_INCR = math.radians(30)
+L_RAD = 20
 
 class LatLong(object):
     def __init__(self, latlong):
@@ -24,10 +24,10 @@ class LatLong(object):
 
     @staticmethod
     def getBearing(latLong1, latLong2):
-        diff = latLong2.getLong()-latLong1.getLong()
+        diff = math.radians(latLong2.getLong())-math.radians(latLong1.getLong())
         x = math.cos(latLong2.getLat())*math.sin(diff)
         y = math.cos(latLong1.getLat())*math.sin(latLong2.getLat())-math.sin(latLong1.getLat())*math.cos(latLong2.getLat())*math.cos(diff)
-        return math.atan2(x,y)
+        return math.atan2(x,y) if math.atan2(x,y) >= 0 else 2*math.pi + math.atan2(x,y)
 
     @staticmethod
     def getLocation(latLong, bearing, distance):
@@ -49,24 +49,42 @@ class LatLong(object):
 
     @staticmethod
     def getApproxCartesianDist(latLong1, latLong2):
-        lat1, lon1 = latLong1.getLat(), latLong1.getLong()
-        lat2, lon2 = latLong2.getLat(), latLong2.getLong()
-        dx = (lon2-lon1)*2*math.pi*R*math.cos((lat1+lat2)*math.pi/360)/360
-        dy = (lat1-lat2)*2*math.pi*R/360
+        bearing = LatLong.getBearing(latLong1, latLong2)
+        dist = LatLong.getDistance(latLong1, latLong2)
+#        print math.degrees(bearing), dist
+        dx = dist*math.cos(ANGLE_INCR)
+        dy = dist*math.sin(ANGLE_INCR)
         return (dx, dy)
     
     @staticmethod    
-    def getWaypoints(latLong1, latLong2, step):
-        waypoints = []
+    def getWaypoints1(latLong1, latLong2, step):
+        waypoints = [latLong1]
         dist = LatLong.getDistance(latLong1, latLong2)
         bearing = LatLong.getBearing(latLong1, latLong2)
         currDist, currLatLong = 0, latLong1
         while currDist < dist:
-            currLatLong = LatLong.getLocation(currLatLong, step, bearing)
-            waypoints.append(currLatLong)
+            currLatLong = LatLong.getLocation(currLatLong, bearing, step)
+            waypoints.append(currLatLong)            
+            if currDist + 2*step < dist:
+                local_waypoints = LatLong.getLocalNavigationWaypoints(currLatLong, bearing, L_RAD)
+                [waypoints.append(l_waypoint) for l_waypoint in local_waypoints]
             currDist += step
         return waypoints
 
+    @staticmethod
+    def getWaypoints(g_waypoints):
+        waypoints = [g_waypoints[0]]
+        count = 1
+        for count in range(len(g_waypoints)-1):
+            prevWaypoint = g_waypoints[count-1]
+            currWaypoint = g_waypoints[count]
+            bearing = LatLong.getBearing(prevWaypoint, currWaypoint)
+            local_waypoints = LatLong.getLocalNavigationWaypoints(currWaypoint, bearing, L_RAD)             
+            [waypoints.append(l_waypoint) for l_waypoint in local_waypoints]
+            count += 1
+        waypoints.append(g_waypoints[-1])    
+        return waypoints
+    
     @staticmethod
     def getApproxCartesianWaypoints(waypoints, initLatLong):
         cartesianLocs = [[0, 0]]
@@ -77,35 +95,48 @@ class LatLong(object):
             [x, y] = cartesianLocs[-1]
             cartesianLocs.append([x+dx, y+dy])
         return cartesianLocs
+
+    @staticmethod
+    def getLocalNavigationWaypoints(center, bearing, rad):
+        local_waypoints = [LatLong.getLocation(center, bearing, rad)]
+        inc = 0
+        while inc <= 2*math.pi:
+            nxt_loc = LatLong.getLocation(center, bearing+inc, rad)
+            local_waypoints.append(nxt_loc)
+            inc += ANGLE_INCR
+        return local_waypoints
         
 def plot(x, y, z):
+    mpl.rcParams['legend.fontsize'] = 10
     fig = plt.figure()
     ax = fig.gca(projection='3d')
-    ax.plot(x, y, z, label='parametric curve')
+    ax.plot(x, y, z, label='drone path', linestyle='--', marker='o')
     ax.legend()
+    x_start = x == 0
+    y_start = y == 0
+    plt.scatter(x[x_start], y[y_start], color='green')     
     plt.show()
 
-if __name__ == "__main__":
+def main():
     data = open("locations.txt", "r").readlines()
     locations = [LatLong(location.rstrip().split(",")) for location in data]
+    waypoints = LatLong.getWaypoints(locations)
 
-    start = locations[0]
-    goal = LatLong.getLocation(start, math.radians(90), 100)
-    dist = LatLong.getDistance(start, goal)
-    print start, goal, dist
-
-    waypoints = LatLong.getWaypoints(start, goal, 10)
-    print [str(waypoint) for waypoint in waypoints]
-
-    cartesian = LatLong.getApproxCartesianWaypoints(waypoints, start)
-    print cartesian
-
-    plot([x[0] for x in cartesian], [x[1] for x in cartesian], [0 for x in cartesian])
-
+    count = 0 
+    for waypoint in waypoints:
+        print str(waypoint)
+    
+    #plot([x[0] for x in cartesian], [x[1] for x in cartesian], [0 for x in cartesian])
+    
+if __name__ == "__main__":
+    main()
+    
 # References
-# http://www.movable-type.co.uk/scripts/latlong.html
 # http://www.movable-type.co.uk/scripts/latlong.html
 # http://www.gps-coordinates.net/gps-coordinates-converter
 # https://en.wikipedia.org/wiki/Decimal_degrees
 # http://stackoverflow.com/questions/1185408/converting-from-longitude-latitude-to-cartesian-coordinates
 # http://www.latlong.net/place/seattle-wa-usa-2655.html
+# http://www.gps-coordinates.net/gps-coordinates-converter
+# http://www.darrinward.com/lat-long/?id=2365962
+# http://www.gpsvisualizer.com/map_input?form=data
