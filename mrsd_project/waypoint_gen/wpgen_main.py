@@ -14,7 +14,7 @@ class LatLong(object):
         self.long = float(latlong[1])
 
     def __str__(self):
-        return str(self.lat) + "," + str(self.long) + " "
+        return str(math.degrees(self.lat)) + "," + str(math.degrees(self.long)) + " "
         
     def getLat(self):
         return self.lat    
@@ -23,24 +23,27 @@ class LatLong(object):
         return self.long
 
     @staticmethod
-    def getBearing(latLong1, latLong2):
-        diff = math.radians(latLong2.getLong())-math.radians(latLong1.getLong())
-        x = math.cos(latLong2.getLat())*math.sin(diff)
-        y = math.cos(latLong1.getLat())*math.sin(latLong2.getLat())-math.sin(latLong1.getLat())*math.cos(latLong2.getLat())*math.cos(diff)
-        return math.atan2(x,y) if math.atan2(x,y) >= 0 else 2*math.pi + math.atan2(x,y)
-
-    @staticmethod
     def getLocation(latLong, bearing, distance):
-        lat1, lon1 = map(math.radians, [latLong.getLat(), latLong.getLong()])
+        lat1, lon1 = latLong.getLat(), latLong.getLong()
         lat2 = math.asin(math.sin(lat1)*math.cos(float(distance)/R) + math.cos(lat1)*math.sin(float(distance)/R)*math.cos(bearing))
         lon2 = lon1 + math.atan2(math.sin(bearing)*math.sin(float(distance)/R)*math.cos(lat1), math.cos(float(distance)/R)-math.sin(lat1)*math.sin(lat2))
         lon2 = math.fmod((lon2+3*math.pi),(2*math.pi)) - math.pi;  
-        return LatLong([math.degrees(lat2), math.degrees(lon2)])
+        return LatLong([lat2, lon2])
 
+    # theta = atan2(sin(long2-long1).cos(lat2), cos(lat1).sin(lat2)-sin(lat1).cos(lat2).cos(long2-long1))
+    def getBearing(latLong1, latLong2):
+        lat1, long1 = latLong1.getLat(), latLong1.getLong()
+        lat2, long2 = latLong2.getLat(), latLong2.getLong()
+        x = math.cos(lat1) * math.sin(lat2) - (math.sin(lat1)* math.cos(lat2) * math.cos(long2-long1))
+        y = math.sin(long2-long1) * math.cos(lat2)
+        initial_bearing = math.atan2(y, x)
+        compass_bearing = (math.degrees(initial_bearing) + 360) % 360
+        return math.radians(compass_bearing)
+    
     @staticmethod
     def getDistance(latLong1, latLong2):
-        lat1, lon1 = map(math.radians, [latLong1.getLat(), latLong1.getLong()])
-        lat2, lon2 = map(math.radians, [latLong2.getLat(), latLong2.getLong()])
+        lat1, lon1 = latLong1.getLat(), latLong1.getLong()
+        lat2, lon2 = latLong2.getLat(), latLong2.getLong()
         lon = lon2 - lon1 
         lat = lat2 - lat1 
         a = math.sin(lat/2)**2 + math.cos(lat1) * math.cos(lat2) * math.sin(lon/2)**2
@@ -51,13 +54,12 @@ class LatLong(object):
     def getApproxCartesianDist(latLong1, latLong2):
         bearing = LatLong.getBearing(latLong1, latLong2)
         dist = LatLong.getDistance(latLong1, latLong2)
-#        print math.degrees(bearing), dist
         dx = dist*math.cos(ANGLE_INCR)
         dy = dist*math.sin(ANGLE_INCR)
         return (dx, dy)
     
     @staticmethod    
-    def getWaypoints1(latLong1, latLong2, step):
+    def getIntermediateWaypoints(latLong1, latLong2, step):
         waypoints = [latLong1]
         dist = LatLong.getDistance(latLong1, latLong2)
         bearing = LatLong.getBearing(latLong1, latLong2)
@@ -65,24 +67,23 @@ class LatLong(object):
         while currDist < dist:
             currLatLong = LatLong.getLocation(currLatLong, bearing, step)
             waypoints.append(currLatLong)            
-            if currDist + 2*step < dist:
-                local_waypoints = LatLong.getLocalNavigationWaypoints(currLatLong, bearing, L_RAD)
-                [waypoints.append(l_waypoint) for l_waypoint in local_waypoints]
             currDist += step
         return waypoints
 
     @staticmethod
-    def getWaypoints(g_waypoints):
+    def getWaypoints(g_waypoints, step):
         waypoints = [g_waypoints[0]]
         count = 1
-        for count in range(len(g_waypoints)-1):
+        for count in range(len(g_waypoints)):
             prevWaypoint = g_waypoints[count-1]
             currWaypoint = g_waypoints[count]
+            if step != -1:
+                intermediateWayPoints = LatLong.getIntermediateWaypoints(prevWaypoint, currWaypoint, step)
+                [waypoints.append(i_waypoint) for i_waypoint in intermediateWayPoints]                
             bearing = LatLong.getBearing(prevWaypoint, currWaypoint)
             local_waypoints = LatLong.getLocalNavigationWaypoints(currWaypoint, bearing, L_RAD)             
             [waypoints.append(l_waypoint) for l_waypoint in local_waypoints]
             count += 1
-        waypoints.append(g_waypoints[-1])    
         return waypoints
     
     @staticmethod
@@ -119,24 +120,24 @@ def plot(x, y, z):
 
 def main():
     data = open("locations.txt", "r").readlines()
-    locations = [LatLong(location.rstrip().split(",")) for location in data]
-    waypoints = LatLong.getWaypoints(locations)
+    locations = [LatLong([math.radians(float(loc)) for loc in location.rstrip().split(",")]) for location in data] 
 
-    count = 0 
+    waypoints = LatLong.getWaypoints(locations, 20)
+
     for waypoint in waypoints:
         print str(waypoint)
     
     #plot([x[0] for x in cartesian], [x[1] for x in cartesian], [0 for x in cartesian])
-    
+
 if __name__ == "__main__":
     main()
-    
+
 # References
 # http://www.movable-type.co.uk/scripts/latlong.html
-# http://www.gps-coordinates.net/gps-coordinates-converter
 # https://en.wikipedia.org/wiki/Decimal_degrees
 # http://stackoverflow.com/questions/1185408/converting-from-longitude-latitude-to-cartesian-coordinates
 # http://www.latlong.net/place/seattle-wa-usa-2655.html
 # http://www.gps-coordinates.net/gps-coordinates-converter
 # http://www.darrinward.com/lat-long/?id=2365962
 # http://www.gpsvisualizer.com/map_input?form=data
+# http://www.hamstermap.com/quickmap.php
