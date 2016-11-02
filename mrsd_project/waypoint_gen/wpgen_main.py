@@ -9,6 +9,9 @@ from utils import *
 def usage():
     print "Usage: python wpgen_main.py <loc_of_interest_file> <out_waypoints>"
 
+def getLocation(raw_loc):
+    return Location([math.radians(float(raw_loc[0])), math.radians(float(raw_loc[1])), float(raw_loc[2])])
+
 def main():
     if len(sys.argv) != 3:
         usage()
@@ -18,7 +21,7 @@ def main():
     out_waypoints = sys.argv[2]
      
     data = filter(lambda x: not x.startswith("#") , open(loc_of_interest, "r").readlines())
-    locations = [Location([math.radians(float(loc)) for loc in location.rstrip().split(",")]) for location in data] 
+    locations = [getLocation(location.rstrip().split(",")) for location in data] 
 
     cfg = ConfigParser.ConfigParser()
     cfg.readfp(open("config.cfg"))

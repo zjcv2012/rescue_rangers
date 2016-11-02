@@ -7,7 +7,7 @@ def plot(x, y, z):
     mpl.rcParams['legend.fontsize'] = 10
     fig = plt.figure()
     ax = fig.gca(projection='3d')
-    ax.set_xlim(-200, 700)
+    ax.set_xlim(-200, 1200)
     ax.set_ylim(-500, 200)
     ax.set_zlim(0, 100)
     ax.plot(x, y, z, label='drone path', linestyle='--', marker='o')
