@@ -1,133 +1,38 @@
-import matplotlib as mpl
-from mpl_toolkits.mplot3d import Axes3D
-import numpy as np
-import matplotlib.pyplot as plt
-import math
+import ConfigParser
+import sys
 
-R = 6370000
-ANGLE_INCR = math.radians(30)
-L_RAD = 20
+from location import *
+from global_nav import *
+from local_nav import *
+from utils import *
 
-class LatLong(object):
-    def __init__(self, latlong):
-        self.lat = float(latlong[0])
-        self.long = float(latlong[1])
-
-    def __str__(self):
-        return str(math.degrees(self.lat)) + "," + str(math.degrees(self.long)) + " "
-        
-    def getLat(self):
-        return self.lat    
-
-    def getLong(self):
-        return self.long
-
-    @staticmethod
-    def getLocation(latLong, bearing, distance):
-        lat1, lon1 = latLong.getLat(), latLong.getLong()
-        lat2 = math.asin(math.sin(lat1)*math.cos(float(distance)/R) + math.cos(lat1)*math.sin(float(distance)/R)*math.cos(bearing))
-        lon2 = lon1 + math.atan2(math.sin(bearing)*math.sin(float(distance)/R)*math.cos(lat1), math.cos(float(distance)/R)-math.sin(lat1)*math.sin(lat2))
-        lon2 = math.fmod((lon2+3*math.pi),(2*math.pi)) - math.pi;  
-        return LatLong([lat2, lon2])
-
-    # theta = atan2(sin(long2-long1).cos(lat2), cos(lat1).sin(lat2)-sin(lat1).cos(lat2).cos(long2-long1))
-    def getBearing(latLong1, latLong2):
-        lat1, long1 = latLong1.getLat(), latLong1.getLong()
-        lat2, long2 = latLong2.getLat(), latLong2.getLong()
-        x = math.cos(lat1) * math.sin(lat2) - (math.sin(lat1)* math.cos(lat2) * math.cos(long2-long1))
-        y = math.sin(long2-long1) * math.cos(lat2)
-        initial_bearing = math.atan2(y, x)
-        compass_bearing = (math.degrees(initial_bearing) + 360) % 360
-        return math.radians(compass_bearing)
-    
-    @staticmethod
-    def getDistance(latLong1, latLong2):
-        lat1, lon1 = latLong1.getLat(), latLong1.getLong()
-        lat2, lon2 = latLong2.getLat(), latLong2.getLong()
-        lon = lon2 - lon1 
-        lat = lat2 - lat1 
-        a = math.sin(lat/2)**2 + math.cos(lat1) * math.cos(lat2) * math.sin(lon/2)**2
-        c = 2 * math.asin(math.sqrt(a)) 
-        return c * R
-
-    @staticmethod
-    def getApproxCartesianDist(latLong1, latLong2):
-        bearing = LatLong.getBearing(latLong1, latLong2)
-        dist = LatLong.getDistance(latLong1, latLong2)
-        dx = dist*math.cos(ANGLE_INCR)
-        dy = dist*math.sin(ANGLE_INCR)
-        return (dx, dy)
-    
-    @staticmethod    
-    def getIntermediateWaypoints(latLong1, latLong2, step):
-        waypoints = [latLong1]
-        dist = LatLong.getDistance(latLong1, latLong2)
-        bearing = LatLong.getBearing(latLong1, latLong2)
-        currDist, currLatLong = 0, latLong1
-        while currDist < dist:
-            currLatLong = LatLong.getLocation(currLatLong, bearing, step)
-            waypoints.append(currLatLong)            
-            currDist += step
-        return waypoints
-
-    @staticmethod
-    def getWaypoints(g_waypoints, step):
-        waypoints = [g_waypoints[0]]
-        count = 1
-        for count in range(len(g_waypoints)):
-            prevWaypoint = g_waypoints[count-1]
-            currWaypoint = g_waypoints[count]
-            if step != -1:
-                intermediateWayPoints = LatLong.getIntermediateWaypoints(prevWaypoint, currWaypoint, step)
-                [waypoints.append(i_waypoint) for i_waypoint in intermediateWayPoints]                
-            bearing = LatLong.getBearing(prevWaypoint, currWaypoint)
-            local_waypoints = LatLong.getLocalNavigationWaypoints(currWaypoint, bearing, L_RAD)             
-            [waypoints.append(l_waypoint) for l_waypoint in local_waypoints]
-            count += 1
-        return waypoints
-    
-    @staticmethod
-    def getApproxCartesianWaypoints(waypoints, initLatLong):
-        cartesianLocs = [[0, 0]]
-        dx, dy = LatLong.getApproxCartesianDist(initLatLong, waypoints[0])
-        cartesianLocs.append([dx, dy])
-        for i in range(1, len(waypoints)):
-            dx, dy = LatLong.getApproxCartesianDist(waypoints[i-1], waypoints[i])
-            [x, y] = cartesianLocs[-1]
-            cartesianLocs.append([x+dx, y+dy])
-        return cartesianLocs
-
-    @staticmethod
-    def getLocalNavigationWaypoints(center, bearing, rad):
-        local_waypoints = [LatLong.getLocation(center, bearing, rad)]
-        inc = 0
-        while inc <= 2*math.pi:
-            nxt_loc = LatLong.getLocation(center, bearing+inc, rad)
-            local_waypoints.append(nxt_loc)
-            inc += ANGLE_INCR
-        return local_waypoints
-        
-def plot(x, y, z):
-    mpl.rcParams['legend.fontsize'] = 10
-    fig = plt.figure()
-    ax = fig.gca(projection='3d')
-    ax.plot(x, y, z, label='drone path', linestyle='--', marker='o')
-    ax.legend()
-    x_start = x == 0
-    y_start = y == 0
-    plt.scatter(x[x_start], y[y_start], color='green')     
-    plt.show()
+def usage():
+    print "Usage: python wpgen_main.py <loc_of_interest_file> <out_waypoints>"
 
 def main():
-    data = open("locations.txt", "r").readlines()
-    locations = [LatLong([math.radians(float(loc)) for loc in location.rstrip().split(",")]) for location in data] 
+    if len(sys.argv) != 3:
+        usage()
+        exit()
 
-    waypoints = LatLong.getWaypoints(locations, 20)
+    loc_of_interest = sys.argv[1]
+    out_waypoints = sys.argv[2]
+     
+    data = filter(lambda x: not x.startswith("#") , open(loc_of_interest, "r").readlines())
+    locations = [Location([math.radians(float(loc)) for loc in location.rstrip().split(",")]) for location in data] 
 
+    cfg = ConfigParser.ConfigParser()
+    cfg.readfp(open("config.cfg"))
+    local_wp = LocalWP(cfg)
+    global_wp = GlobalWP(cfg, local_wp)
+
+    waypoints = global_wp.getWaypoints(locations)
+    out = open(out_waypoints, "w")
     for waypoint in waypoints:
-        print str(waypoint)
-    
-    #plot([x[0] for x in cartesian], [x[1] for x in cartesian], [0 for x in cartesian])
+        out.write(str(waypoint) + "\n")
+    out.close()
+
+    cartesian = Location.getApproxCartesianWaypoints(waypoints, locations[0])    
+    plot([x[0] for x in cartesian], [x[1] for x in cartesian], [x[2] for x in cartesian])
 
 if __name__ == "__main__":
     main()
