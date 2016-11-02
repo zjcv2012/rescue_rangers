@@ -25,7 +25,7 @@ def main():
     local_wp = LocalWP(cfg)
     global_wp = GlobalWP(cfg, local_wp)
 
-    waypoints = global_wp.getWaypoints(locations)
+    waypoints = [locations[0]] + global_wp.getWaypoints(locations[1:len(locations)-1]) + [locations[-1]]
     out = open(out_waypoints, "w")
     for waypoint in waypoints:
         out.write(str(waypoint) + "\n")
