@@ -1,10 +1,10 @@
-#H1 Waypoint Generation
+# H1 Waypoint Generation
 
-#H2 Introduction
+# H2 Introduction
 
 This module implements logic for generating intermediate  waypoints for the drone, given a set of initial lcoations of interest.
 
-#H2 Parameters
+# H2 Parameters
 
 The waypoint generation is controlled by the following parameters as used in the config file
 
@@ -16,14 +16,14 @@ The waypoint generation is controlled by the following parameters as used in the
 * local_wp::elev_l Min elevation for local search
 * local_wpelev_step Incremental elevation change between intermediate waypoints between locations of interest
 
-#H2 Sample Output
+# H2 Sample Output
 
-![alt text](https://github.com/karamach/rescue_rangers/images/path.png "Intermediate Waypoints")
+![alt text](https://github.com/karamach/rescue_rangers/mrsd_project/waypoint_gen/images/path.png "Intermediate Waypoints")
 
-#H2 TODO
+# H2 TODO
 1. Employ shortest part
 
-References
+# H2 References
 - http://www.movable-type.co.uk/scripts/latlong.html
 - https://en.wikipedia.org/wiki/Decimal_degrees
 - http://stackoverflow.com/questions/1185408/converting-from-longitude-latitude-to-cartesian-coordinates
