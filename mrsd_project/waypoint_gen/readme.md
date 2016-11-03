@@ -18,7 +18,7 @@ The waypoint generation is controlled by the following parameters as used in the
 
 # Sample Output
 
-![alt text](https://github.com/karamach/rescue_rangers/tree/master/mrsd_project/waypoint_gen/images/path.png "Intermediate Waypoints")
+![alt tag](https://github.com/karamach/rescue_rangers/tree/master/mrsd_project/waypoint_gen/images/path.png)
 
 # TODO
 1. Employ shortest part
