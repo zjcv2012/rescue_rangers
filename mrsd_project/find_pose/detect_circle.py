@@ -21,8 +21,8 @@ def get_dist(r):
         
 def detect(gray, image):
     # detect circles in the image
-    circles = cv2.HoughCircles(gray, cv2.cv.CV_HOUGH_GRADIENT, 1.2, 10, param1=120,
-                               param2=72, minRadius=0, maxRadius=1000)
+    circles = cv2.HoughCircles(gray, cv2.cv.CV_HOUGH_GRADIENT, 1.2, 10, param1=100,
+                               param2=35, minRadius=20, maxRadius=0)
     
     # ensure at least some circles were found
     if circles is not None:
@@ -34,7 +34,7 @@ def detect(gray, image):
         for (x, y, r) in circles:
             print x, y, r, get_dist(r)
         
-        #draw_circle_boundary(circles, image);
+        draw_circle_boundary(circles, image);
             
     else:
         print "No circles"
